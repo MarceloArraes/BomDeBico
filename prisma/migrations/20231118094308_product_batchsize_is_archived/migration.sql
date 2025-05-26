@@ -1,0 +1,3 @@
+-- AlterTable
+ALTER TABLE "Product" ADD COLUMN     "batchSize" INTEGER NOT NULL DEFAULT 500,
+ADD COLUMN     "isArchived" BOOLEAN NOT NULL DEFAULT false;

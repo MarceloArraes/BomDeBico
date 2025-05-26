@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "Product" ADD COLUMN     "costPerKg" DOUBLE PRECISION NOT NULL DEFAULT 0.00;
