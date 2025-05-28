@@ -1,6 +1,6 @@
 import { z } from "zod";
-import { createTRPCRouter, protectedProcedure, publicProcedure } from "~/server/api/trpc";
-import { api } from "~/trpc/server";
+import { createTRPCRouter, protectedProcedure, publicProcedure } from "@/server/api/trpc";
+import type { Prisma } from "@prisma/client";
 
 
 
@@ -39,28 +39,45 @@ export const productRouter = createTRPCRouter({
     costPerKg: z.number().optional(),
     ingredients: z.array(z.object({
       ingredientId: z.number(),
-      quantity: z.number()
+      quantity: z.number().gt(0)
     })),
   }))
   .mutation(async ({ ctx, input }) => {
     const ingredientsWeight = input.ingredients.reduce((total, ingredient) => total + ingredient.quantity, 0);
+    let calculatedCostPerKg = 0;
+    // const ingredientCosts = await Promise.all(input.ingredients.map(async (ingredient) => {
+    //   const ingredientData = await api.ingredient.getIngredientById({ id: ingredient.ingredientId });
 
-    const ingredientCosts = await Promise.all(input.ingredients.map(async (ingredient) => {
-      const ingredientData = await api.ingredient.getIngredientById.query({ id: ingredient.ingredientId });
+    //   if (!ingredientData) {
+    //     throw new Error(`Ingredient with ID ${ingredient.ingredientId} not found`);
+    //   }
 
-      if (!ingredientData) {
-        throw new Error(`Ingredient with ID ${ingredient.ingredientId} not found`);
-      }
+    //   return ingredientData.costPerKg * ingredient.quantity;
+    // }));
+    if (ingredientsWeight > 0) {
+      const ingredientCosts = await Promise.all(input.ingredients.map(async (ingredientInput) => {
+        // OLD: const ingredientData = await api.ingredient.getIngredientById({ id: ingredientInput.ingredientId });
+        // NEW: Directly query the database
+        const ingredientData = await ctx.db.ingredient.findUnique({
+          where: { id: ingredientInput.ingredientId },
+          select: { costPerKg: true } // Only fetch the data you need
+        });
 
-      return ingredientData.costPerKg * ingredient.quantity;
-    }));
+        if (!ingredientData) {
+          throw new Error(`Ingredient with ID ${ingredientInput.ingredientId} not found`);
+        }
+
+        return ingredientData.costPerKg * ingredientInput.quantity;
+      }));
+    
+
 
       // Sum up all ingredient costs
     const totalIngredientCost = ingredientCosts.reduce((total, cost) => total + cost, 0);
 
     // Calculate cost per kg
-    const calculatedCostPerKg = totalIngredientCost / ingredientsWeight as unknown as number;
-
+    calculatedCostPerKg = totalIngredientCost / ingredientsWeight as unknown as number;
+    }
 
     return ctx.db.product.create({
       data: {
@@ -68,7 +85,7 @@ export const productRouter = createTRPCRouter({
         sellPricePerKg: input.sellPricePerKg,
         costPerKg: calculatedCostPerKg,
         batchSize: ingredientsWeight,
-        isArchived: input.isArchive,
+        isArchived: input.isArchive ?? false,
         ingredients: {
           create: input.ingredients.map(ing => ({
             quantity: ing.quantity,
@@ -96,88 +113,93 @@ updateProduct: protectedProcedure
       quantity: z.number()
     })).optional(),
   }))
-  .mutation(async ({ ctx, input }) => {
-    let calculatedCostPerKg =0;
-    let ingredientsWeight = 0;
+  .mutation(async ({ ctx, input }) => {const { id, ingredients: newIngredientsInput, ...productData } = input;
 
-    if (input.ingredients) {
-      ingredientsWeight = input.ingredients.reduce((total, ingredient) => total + ingredient.quantity, 0);
+  const dataToUpdate: Prisma.ProductUpdateInput = { ...productData };
 
-      const ingredientCosts = await Promise.all(input.ingredients.map(async (ingredient) => {
-        const ingredientData = await api.ingredient.getIngredientById.query({ id: ingredient.ingredientId });
+  if (newIngredientsInput !== undefined) { // If ingredients array is provided (even if empty)
+    let newCalculatedCostPerKg = 0;
+    let newBatchSize = 0;
 
-        if (!ingredientData) {
-          throw new Error(`Ingredient with ID ${ingredient.ingredientId} not found`);
-        }
+    if (newIngredientsInput.length > 0) {
+      newBatchSize = newIngredientsInput.reduce((total, ing) => total + ing.quantity, 0);
+      if (newBatchSize <= 0) { // Should be caught by z.object().gt(0) but good to have safeguard
+        throw new Error("Total ingredient quantity must be greater than zero if ingredients are provided.");
+      }
 
-        return ingredientData.costPerKg * ingredient.quantity;
+      const ingredientCosts = await Promise.all(newIngredientsInput.map(async (ingInput) => {
+        // OLD: const ingredientData = await api.ingredient.getIngredientById({ id: ingInput.ingredientId });
+        // NEW: Directly query the database
+        const ingredientData = await ctx.db.ingredient.findUnique({
+          where: { id: ingInput.ingredientId },
+          select: { costPerKg: true }
+        });
+        if (!ingredientData) throw new Error(`Ingredient with ID ${ingInput.ingredientId} not found`);
+        return ingredientData.costPerKg * ingInput.quantity;
       }));
-
-      // Sum up all ingredient costs
       const totalIngredientCost = ingredientCosts.reduce((total, cost) => total + cost, 0);
-
-      // Calculate cost per kg
-      calculatedCostPerKg = totalIngredientCost / ingredientsWeight;
+      newCalculatedCostPerKg = totalIngredientCost / newBatchSize;
     }
-    const currentIngredients = await ctx.db.productIngredient.findMany({
-      where: { productId: input.id }
+    // If newIngredientsInput is empty, cost and batchSize will be 0
+
+    dataToUpdate.costPerKg = newCalculatedCostPerKg; // Overwrite with calculated cost
+    dataToUpdate.batchSize = newBatchSize;         // Overwrite with calculated batch size
+
+    // Manage ProductIngredient relations
+    const currentProductIngredients = await ctx.db.productIngredient.findMany({
+      where: { productId: id }
     });
 
-    // Determine changes in ingredients
-    const newIngredients = input.ingredients ?? [];
-    const ingredientsToAdd = newIngredients.filter(ing => !currentIngredients.some(curr => curr.ingredientId === ing.ingredientId));
-    const ingredientsToUpdate = currentIngredients.filter(curr => newIngredients.some(ing => ing.ingredientId === curr.ingredientId));
-    const ingredientsToRemove = currentIngredients.filter(curr => !newIngredients.some(ing => ing.ingredientId === curr.ingredientId));
+    const operations: Prisma.PrismaPromise<any>[] = [];
 
-    for (const ingredient of ingredientsToAdd) {
-      await ctx.db.productIngredient.create({
-        data: {
-          productId: input.id,
-          ingredientId: ingredient.ingredientId,
-          quantity: ingredient.quantity
-        }
-      });
-    }
-
-    for (const ingredient of ingredientsToUpdate) {
-      await ctx.db.productIngredient.update({
-        where: {
-          productId_ingredientId: {
-            productId: input.id,
-            ingredientId: ingredient.ingredientId
-          }
-        },
-        data: {
-          quantity: newIngredients?.find(ing => ing.ingredientId === ingredient.ingredientId)?.quantity ?? 0
-        }
-      });
-    }
-
-    for (const ingredient of ingredientsToRemove) {
-      await ctx.db.productIngredient.delete({
-        where: {
-          productId_ingredientId: {
-            productId: input.id,
-            ingredientId: ingredient.ingredientId
-          }
-        }
-      });
-    }
-
-    // Update the product with the new calculated fields
-    return ctx.db.product.update({
-      where: { id: input.id },
-      data: {
-        name: input.name,
-        sellPricePerKg: input.sellPricePerKg,
-        costPerKg: calculatedCostPerKg,
-        batchSize: input.batchSize,
-        isArchived: input.isArchive
-        // Note: No need to handle ingredients here since they are updated above
-      },
+    // Ingredients to remove
+    currentProductIngredients.forEach(currentPI => {
+      if (!newIngredientsInput.some(newIng => newIng.ingredientId === currentPI.ingredientId)) {
+        operations.push(ctx.db.productIngredient.delete({
+          where: { productId_ingredientId: { productId: id, ingredientId: currentPI.ingredientId }}
+        }));
+      }
     });
-  }),
 
+    // Ingredients to add or update
+    newIngredientsInput.forEach(newIng => {
+      const existingPI = currentProductIngredients.find(curr => curr.ingredientId === newIng.ingredientId);
+      if (existingPI) {
+        // Update existing if quantity changed
+        if (existingPI.quantity !== newIng.quantity) {
+          operations.push(ctx.db.productIngredient.update({
+            where: { productId_ingredientId: { productId: id, ingredientId: newIng.ingredientId }},
+            data: { quantity: newIng.quantity }
+          }));
+        }
+      } else {
+        // Add new
+        operations.push(ctx.db.productIngredient.create({
+          data: {
+            productId: id,
+            ingredientId: newIng.ingredientId,
+            quantity: newIng.quantity
+          }
+        }));
+      }
+    });
+    if (operations.length > 0) {
+        await ctx.db.$transaction(operations);
+    }
+  }
+  // If newIngredientsInput is not provided, costPerKg and batchSize from input (if present) are used.
+
+  // Ensure we don't send an empty data object if nothing else changed
+  if (Object.keys(dataToUpdate).length === 0 && newIngredientsInput === undefined) {
+      // Optionally, fetch and return the current product or throw an error
+      // For now, we let it proceed, Prisma might optimize or error if it's truly an empty update
+  }
+
+  return ctx.db.product.update({
+    where: { id },
+    data: dataToUpdate,
+  });
+}),
   // Delete a product
   deleteProduct: protectedProcedure
     .input(z.object({ id: z.number() }))
