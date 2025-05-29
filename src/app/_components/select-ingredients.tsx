@@ -81,33 +81,40 @@ const unselectedIngredients = data?.filter((ingredient:Ingredient) =>
 const sortedIngredients = [...selectedIngredients, ...unselectedIngredients];
 
     return (
-    <div className="flex flex-col sm:max-h-[48rem] lg:max-h-96 flex-wrap columns-2 "> 
+    <div className="max-w-4xl mx-auto p-2 columns-2 sm:columns-3 lg:columns-4 gap-x-4 overflow-y-auto max-h-96"> 
         {sortedIngredients?.map((ingredient) => {
           const isSelected = listOfIngredientsOnProduct?.map((ingredient)=>ingredient.ingredientId).includes(ingredient.id);
           return (
-              <div key={ingredient.id} className="items-start gap-2 flex-col flex min-w-fit flex-nowrap">
-                <div className="flex flex-row" >
-                <input
-                  type="checkbox"
-                  name="ingredientId"
-                  data-ingredientid={ingredient.id}
-                  checked={isSelected??false}
-                  onChange={handleIngredientsInProduct}
-                  
-                />
-                <label>{ingredient.name}</label>
+              <div 
+                key={ingredient.id} 
+                className={`break-inside-avoid-column mb-2 p-2 rounded-md shadow-sm transition-all duration-200 ease-in-out 
+                            ${isSelected ? 'bg-gray-300 border border-gray-500' : 'bg-white border border-gray-200'}
+                            text-gray-900 flex flex-col`}
+              >
+                <div className="flex items-center">
+                  <input
+                    type="checkbox"
+                    name="ingredientId"
+                    data-ingredientid={ingredient.id}
+                    checked={isSelected??false}
+                    onChange={handleIngredientsInProduct}
+                    className="form-checkbox h-4 w-4 text-gray-600 rounded focus:ring-gray-500"
+                  />
+                  <label className="ml-2 text-sm font-medium flex-grow">{ingredient.name}</label>
                 </div>
                 {isSelected && (
-
-                  <input
-                    type="number"
-                    name="ingredientQuantity"
-                    data-ingredientid={ingredient.id}
-                    placeholder="Quantity"
-                    value={listOfIngredientsOnProduct?.find(productIngredient => productIngredient.ingredientId === ingredient.id)?.quantity.toString() ?? ""}
-                    onChange={handleIngredientsInProduct}
-                    className="flex max-w-[80%] rounded-md px-2 py-1 text-black"
-                  />
+                  <div className="flex items-center mt-1">
+                    <span className="text-gray-600 text-xs mr-1">Qtd:</span>
+                    <input
+                      type="number"
+                      name="ingredientQuantity"
+                      data-ingredientid={ingredient.id}
+                      placeholder="Qtd"
+                      value={listOfIngredientsOnProduct?.find(productIngredient => productIngredient.ingredientId === ingredient.id)?.quantity.toString() ?? ""}
+                      onChange={handleIngredientsInProduct}
+                      className="w-full p-1 border border-gray-300 rounded-md text-xs focus:outline-none focus:ring-1 focus:ring-gray-500 text-gray-900 bg-gray-50"
+                    />
+                  </div>
                 )}
               </div>
       )})}

@@ -60,7 +60,7 @@ export function EditProduct({productId}:{productId: string}) {
         console.log('localProduct ', localProduct);
         if(localProduct) productMutation.mutate(localProduct as Product);
       }}
-      className="flex flex-col gap-2 w-full"
+      className="flex flex-col gap-2 w-full mt-5"
     >
         <div className="flex flex-col justify-around">
         
@@ -71,7 +71,7 @@ export function EditProduct({productId}:{productId: string}) {
               value={localProduct?.name ??''}
               name="name"
               onChange={handleLocalProductChange}
-              className="w-full rounded-full px-4 py-2 text-black mt-1"
+              className="w-full  px-4 py-2 text-black mt-1 rounded-sm bg-gray-300"
           />
           <input
               type="number"
@@ -80,7 +80,7 @@ export function EditProduct({productId}:{productId: string}) {
               step={0.1}
               value={localProduct?.sellPricePerKg??0}
               onChange={handleLocalProductChange}
-              className="w-full rounded-full px-4 py-2 text-black mt-1"
+              className="w-full  px-4 py-2 text-black mt-1 rounded-sm bg-gray-300"
           />
           <input
               type="number"
@@ -88,7 +88,7 @@ export function EditProduct({productId}:{productId: string}) {
               placeholder='Peso ideal da batida'
               value={localProduct?.batchSize??0}
               onChange={handleLocalProductChange}
-              className="w-full rounded-full px-4 py-2 text-black mt-1"
+              className="w-full  px-4 py-2 text-black mt-1 rounded-sm bg-gray-300"
           />
         
       </div>
@@ -101,10 +101,9 @@ export function EditProduct({productId}:{productId: string}) {
       <div className="bg-gray-300 rounded-full w-fit whitespace-nowrap text-black px-2 py-1 justify-center items-center m-1">
         Peso dos ingredientes: {totalIngredientWeight}
       </div>
-          <SelectIngredients 
-            listOfIngredientsOnProduct={localProduct?.ingredients}
-            setLocalProductIngredient={setLocalProduct}
-
+        <SelectIngredients 
+          listOfIngredientsOnProduct={localProduct?.ingredients}
+          setLocalProductIngredient={setLocalProduct}
         />
         <button
           type="submit"

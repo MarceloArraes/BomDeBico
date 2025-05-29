@@ -14,7 +14,7 @@ export const SigninComponent = async () => {
   
 
   return (
-    <div className="m-10 flex flex-col items-start justify-start gap-4">
+    <div className="absolute ">
       {session && (
         <div className="flex flex-row">
           <Image
@@ -24,14 +24,14 @@ export const SigninComponent = async () => {
             height={55}
             className="-translate-y-3 rounded-full"
           />
-          <p className="ml-3 text-center text-base text-white">
+          <p className="ml-3 text-center text-base text-gray-500">
             <span>Logged in as {session.user?.name}</span>
           </p>
         </div>
       )}
       <Link
         href={session ? "/api/auth/signout" : "/api/auth/signin"}
-        className="flex-nowrap whitespace-nowrap rounded-full bg-white/10 px-3 py-3 text-base font-semibold text-white no-underline transition hover:bg-white/20"
+        className="flex-nowrap whitespace-nowrap rounded-full bg-indigo-400 px-3 py-3 text-base font-semibold text-black no-underline transition hover:bg-indigo-600"
       >
         {session ? "Sign out" : "Sign in"}
       </Link>

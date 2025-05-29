@@ -31,14 +31,14 @@ export function CreateIngredient() {
         placeholder="Ingrediente"
         value={name}
         onChange={(e) => setName(e.target.value)}
-        className="w-full rounded-full px-4 py-2 text-black"
+        className="w-full  px-4 py-2 text-black mt-1 rounded-sm bg-gray-300"
       />
       <input
         type="number"
         placeholder="Custo por Kg"
         value={costPerKg}
         onChange={(e) => setCostPerKg(e.target.value)}
-        className="w-full rounded-full px-4 py-2 text-black"
+        className="w-full  px-4 py-2 text-black mt-1 rounded-sm bg-gray-300"
       />
       <button
         type="submit"

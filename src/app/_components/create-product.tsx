@@ -52,21 +52,21 @@ export function CreateProduct() {
         console.log('createProduct.mutate ',{ name, sellPricePerKg: parseFloat(sellPrice), ingredients: preparedIngredients });
         createProduct.mutate({ name, sellPricePerKg: parseFloat(sellPrice), ingredients: preparedIngredients });
       }}
-      className="flex flex-col justify-center items-center gap-2"
+      className="flex flex-col justify-center items-center gap-2 mt-4"
     >
       <input
         type="text"
         placeholder="Nome do Produto"
         value={name}
         onChange={(e) => setName(e.target.value)}
-        className="w-full rounded-full px-4 py-2 text-black"
+        className="w-full  px-4 py-2 text-black mt-1 rounded-sm bg-gray-300"
       />
       <input
         type="number"
         placeholder="Valor de venda por Kg"
         value={sellPrice}
         onChange={(e) => setSellPrice(e.target.value)}
-        className="w-full rounded-full px-4 py-2 text-black"
+        className="w-full  px-4 py-2 text-black mt-1 rounded-sm bg-gray-300"
       />  
 
       <SelectIngredients 

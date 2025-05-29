@@ -5,8 +5,8 @@ const Title = () => {
   return (
     <div className="flex flex-col items-center justify-between p-4 sm:flex-row">
       <SigninComponent />
-      <h1 className="-ml-14 mt-4 w-full text-center text-3xl font-extrabold tracking-tight text-white sm:mt-0  sm:text-5xl md:text-[5rem]">
-        <Link href="/">
+      <h1 className="mt-4 w-full text-center text-3xl font-extrabold tracking-tight text-white sm:mt-0  sm:text-5xl md:text-[5rem]">
+        <Link className="text-gray-500" href="/">
           Bom{" "}
           <span className="items-center text-[hsl(226,100%,70%)]">de Bico</span>
         </Link>
