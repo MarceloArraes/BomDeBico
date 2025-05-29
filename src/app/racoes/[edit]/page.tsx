@@ -2,7 +2,13 @@ import { EditProduct } from "@/app/_components/edit-product";
 import { auth } from "@/server/auth";
 import { api } from "@/trpc/server";
 
-const RacaoDetails = async({params}:{params:{edit:string}}) => {
+type Props = {
+  params: {
+    edit: string;
+  };
+};
+
+const RacaoDetails = async({ params }: Props) => {
       const session = await auth();
     if (session?.user) {
         void api.product.getLatest.prefetch();
