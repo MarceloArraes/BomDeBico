@@ -3,9 +3,9 @@ import { auth } from "@/server/auth";
 import { api } from "@/trpc/server";
 
 type Props = {
-  params: {
-    edit: string;
-  };
+  params: { edit: string };
+  // include this—even if you're not going to read it
+  searchParams: Record<string, string | string[] | undefined>;
 };
 
 const RacaoDetails = async({ params }: Props) => {
