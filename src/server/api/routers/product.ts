@@ -150,7 +150,7 @@ updateProduct: protectedProcedure
       where: { productId: id }
     });
 
-    const operations: Prisma.PrismaPromise<any>[] = [];
+    const operations: Prisma.PrismaPromise<unknown>[] = [];
 
     // Ingredients to remove
     currentProductIngredients.forEach(currentPI => {

@@ -2,14 +2,19 @@ import { EditProduct } from "@/app/_components/edit-product";
 import { auth } from "@/server/auth";
 import { api } from "@/trpc/server";
 
-type Props = {
-  params: { edit: string };
-  // include this—even if you're not going to read it
-  searchParams: Record<string, string | string[] | undefined>;
-};
+// type Props = {
+//   params: { edit: string };
+//   // include this—even if you're not going to read it
+//   searchParams: Record<string, string | string[] | undefined>;
+// };
 
-const RacaoDetails = async({ params }: Props) => {
+const RacaoDetails = async ({
+  params,
+}: {
+  params: Promise<{ edit: string }>
+})=> {
       const session = await auth();
+      const { edit } = await params
     if (session?.user) {
         void api.product.getLatest.prefetch();
         void api.ingredient.getAllIngredients.prefetch();
@@ -26,7 +31,7 @@ const RacaoDetails = async({ params }: Props) => {
          from-[#2e026d] to-[#15162c] text-white"
          >
             <div className="max-w-full">
-            <EditProduct productId={params.edit}/>
+            <EditProduct productId={edit}/>
 
             </div>
             <div className="max-w-lg">

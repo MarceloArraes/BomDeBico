@@ -4,9 +4,8 @@ import { MyDocument } from "./pdf-generator";
 import { PDFViewer } from "@react-pdf/renderer";
 
 const PdfOnScreen = () => {
-  const { data: products, isLoading } = api.product.getAllProducts.useSuspenseQuery();
+  const {data: products, isLoading} = api.product.getAllProducts.useQuery();
   // const [latestPost] = api.getLatest.useSuspenseQuery();
-  console.log('products', products);
   if (isLoading) {
     return <div>Loading...</div>;
   }

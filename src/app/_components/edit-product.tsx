@@ -11,7 +11,7 @@ import type { ExtendedProduct } from "./select-ingredients";
 export function EditProduct({productId}:{productId: string}) {
   const [localProduct, setLocalProduct] = useState<ExtendedProduct | undefined| null>();
     const numberId = parseInt(productId);
-    const {data, isLoading, refetch} = api.product.getProductById.useQuery({id:numberId})
+    const {data, refetch, isLoading } = api.product.getProductById.useQuery({id:numberId})
 
     const productMutation = api.product.updateProduct.useMutation({
       onSuccess: async () => {

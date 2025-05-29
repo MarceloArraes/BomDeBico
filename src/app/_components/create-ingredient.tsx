@@ -10,7 +10,6 @@ export function CreateIngredient() {
   const [name, setName] = useState("");
   const [costPerKg, setCostPerKg] = useState("");
 
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
   const createIngredient = api.ingredient.createIngredient.useMutation({
     onSuccess: () => {
       // router.reload();  // Note: 'reload' is used instead of 'refresh' in newer Next.js versions
@@ -44,9 +43,9 @@ export function CreateIngredient() {
       <button
         type="submit"
         className="rounded-full bg-white/10 px-10 py-3 font-semibold transition hover:bg-white/20"
-        disabled={createIngredient.isLoading}
+        disabled={createIngredient.isPending}
       >
-        {createIngredient.isLoading ? "Submitting..." : "Salvar"}
+        {createIngredient.isPending ? "Submitting..." : "Salvar"}
       </button>
     </form>
   );
