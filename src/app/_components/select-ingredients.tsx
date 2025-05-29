@@ -60,7 +60,7 @@ export const SelectIngredients: React.FC<SelectIngredientsProps2> = ({listOfIngr
         }
 
         // Handle quantity change for existing ingredient
-        const quantity = parseInt(e.target.value, 10) || 0;
+        const quantity = parseFloat(e.target.value) || 0;
         return {
             ...prevState,
             ingredients: prevState?.ingredients?.map(ingredient =>
@@ -109,6 +109,7 @@ const sortedIngredients = [...selectedIngredients, ...unselectedIngredients];
                       type="number"
                       name="ingredientQuantity"
                       data-ingredientid={ingredient.id}
+                      step="0.01"
                       placeholder="Qtd"
                       value={listOfIngredientsOnProduct?.find(productIngredient => productIngredient.ingredientId === ingredient.id)?.quantity.toString() ?? ""}
                       onChange={handleIngredientsInProduct}
