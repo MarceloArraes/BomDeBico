@@ -76,7 +76,7 @@ export const productRouter = createTRPCRouter({
     const totalIngredientCost = ingredientCosts.reduce((total, cost) => total + cost, 0);
 
     // Calculate cost per kg
-    calculatedCostPerKg = totalIngredientCost / ingredientsWeight as unknown as number;
+    calculatedCostPerKg = totalIngredientCost / ingredientsWeight;
     }
 
     return ctx.db.product.create({

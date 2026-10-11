@@ -1,0 +1,46 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:recommended", ":dependencyDashboard"],
+  "timezone": "Australia/Sydney",
+  "schedule": ["before 6am on monday"],
+  "rangeStrategy": "bump",
+  "prConcurrentLimit": 5,
+  "prHourlyLimit": 2,
+  "lockFileMaintenance": {
+    "enabled": true,
+    "schedule": ["before 6am on monday"]
+  },
+  "packageRules": [
+    {
+      "description": "Group all Next.js related packages",
+      "groupName": "Next.js",
+      "matchPackageNames": ["next", "eslint-config-next", "@next/{/,}**"]
+    },
+    {
+      "description": "Group Prisma packages",
+      "groupName": "Prisma",
+      "matchPackageNames": ["prisma", "@prisma/{/,}**"]
+    },
+    {
+      "description": "Group tRPC packages",
+      "groupName": "tRPC",
+      "matchPackageNames": ["@trpc/{/,}**"]
+    },
+    {
+      "description": "Group Auth.js packages and never downgrade next-auth below 5.x (v4 is a breaking rewrite)",
+      "groupName": "Auth.js",
+      "matchPackageNames": ["next-auth", "@auth/{/,}**"],
+      "allowedVersions": ">=5"
+    },
+    {
+      "description": "Never update Prisma to release candidates",
+      "matchPackageNames": ["prisma", "@prisma/{/,}**"],
+      "allowedVersions": "/^[0-9]+\\.[0-9]+\\.[0-9]+$/"
+    },
+    {
+      "description": "Keep TypeScript types for Node pinned to the active LTS major",
+      "matchPackageNames": ["@types/node"],
+      "allowedVersions": "<=20"
+    }
+  ]
+}
