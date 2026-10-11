@@ -8,7 +8,7 @@ export const ingredientRouter = createTRPCRouter({
   createIngredient: protectedProcedure
     .input(z.object({ 
       name: z.string().min(1),
-      costPerKg: z.number(),
+      costPerKg: z.number().nonnegative(),
     }))
     .mutation(async ({ ctx, input }) => {
       return ctx.db.ingredient.create({
@@ -43,7 +43,7 @@ export const ingredientRouter = createTRPCRouter({
   .input(z.object({
     id: z.number(),
     name: z.string().min(1).optional(),
-    costPerKg: z.number().optional(),
+    costPerKg: z.number().nonnegative().optional(),
   }))
   .mutation(async ({ ctx, input }) => {
     // Update the ingredient

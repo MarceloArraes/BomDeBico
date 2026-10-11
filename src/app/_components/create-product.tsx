@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { toast } from "sonner";
 import { api } from "@/trpc/react";
 import { SelectIngredients } from "./select-ingredients";
 
@@ -24,12 +25,21 @@ export function CreateProduct() {
 
   // const listOfIngredients = api.ingredient.getAllIngredients.useQuery();
 
+  const utils = api.useUtils();
+
   const createProduct= api.product.createProduct.useMutation({
-    onSuccess: () => {
-      // router.reload();  // Note: 'reload' is used instead of 'refresh' in newer Next.js versions
+    onSuccess: async () => {
       setName("");
       setSellPrice("");
       setSelectedIngredients(null);
+      toast.success("Ração salva com sucesso!");
+      await Promise.all([
+        utils.product.getAllProducts.invalidate(),
+        utils.product.getLatest.invalidate(),
+      ]);
+    },
+    onError: (error) => {
+      toast.error(error.message || "Não foi possível salvar a ração.");
     },
   });
 
@@ -48,9 +58,20 @@ export function CreateProduct() {
       onSubmit={(e) => {
         e.preventDefault();
         const preparedIngredients = prepareIngredientsForSubmission();
-        console.log('selectedIngredients ',selectedIngredients);
-        console.log('createProduct.mutate ',{ name, sellPricePerKg: parseFloat(sellPrice), ingredients: preparedIngredients });
-        createProduct.mutate({ name, sellPricePerKg: parseFloat(sellPrice), ingredients: preparedIngredients });
+        const parsedSellPrice = parseFloat(sellPrice);
+        if (!name.trim()) {
+          toast.error("Informe o nome do produto.");
+          return;
+        }
+        if (!Number.isFinite(parsedSellPrice) || parsedSellPrice < 0) {
+          toast.error("Informe um valor de venda por Kg válido.");
+          return;
+        }
+        if (preparedIngredients.length === 0) {
+          toast.error("Selecione ao menos um ingrediente.");
+          return;
+        }
+        createProduct.mutate({ name: name.trim(), sellPricePerKg: parsedSellPrice, ingredients: preparedIngredients });
       }}
       className="flex flex-col justify-center items-center gap-2 mt-4"
     >

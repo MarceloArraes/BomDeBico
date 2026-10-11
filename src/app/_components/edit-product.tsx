@@ -3,6 +3,7 @@
 import type { Product } from "@prisma/client";
 import { useEffect, useState } from "react";
 import type { ChangeEvent } from "react";
+import { toast } from "sonner";
 import { api } from "@/trpc/react";
 import { SelectIngredients } from "./select-ingredients";
 import type { ExtendedProduct } from "./select-ingredients";
@@ -12,11 +13,20 @@ export function EditProduct({productId}:{productId: string}) {
   const [localProduct, setLocalProduct] = useState<ExtendedProduct | undefined| null>();
     const numberId = parseInt(productId);
     const {data, refetch, isLoading } = api.product.getProductById.useQuery({id:numberId})
+    const utils = api.useUtils();
 
     const productMutation = api.product.updateProduct.useMutation({
       onSuccess: async () => {
         await refetch();
-      }
+        toast.success("Alterações salvas com sucesso!");
+        await Promise.all([
+          utils.product.getAllProducts.invalidate(),
+          utils.product.getLatest.invalidate(),
+        ]);
+      },
+      onError: (error) => {
+        toast.error(error.message || "Não foi possível salvar as alterações.");
+      },
     })
 
     useEffect(() => {
@@ -57,7 +67,6 @@ export function EditProduct({productId}:{productId: string}) {
     <form
       onSubmit={(e) => {
         e.preventDefault();
-        console.log('localProduct ', localProduct);
         if(localProduct) productMutation.mutate(localProduct as Product);
       }}
       className="flex flex-col gap-2 w-full mt-5"
@@ -108,9 +117,9 @@ export function EditProduct({productId}:{productId: string}) {
         <button
           type="submit"
           className="rounded-full bg-white/10 px-10 py-3 font-semibold transition hover:bg-white/20"
-          disabled={isLoading}
+          disabled={productMutation.isPending}
         >
-          {isLoading ? "Submitting..." : "Salvar"}
+          {productMutation.isPending ? "Salvando..." : "Salvar"}
         </button>
       
       </div>

@@ -3,6 +3,7 @@
 // import { useRouter } from "next/router";
 import { useState } from "react";
 // import {trpc} from '../api/trpc/[trpc]'
+import { toast } from "sonner";
 import { api } from "@/trpc/react";
 
 export function CreateIngredient() {
@@ -10,11 +11,20 @@ export function CreateIngredient() {
   const [name, setName] = useState("");
   const [costPerKg, setCostPerKg] = useState("");
 
+  const utils = api.useUtils();
+
   const createIngredient = api.ingredient.createIngredient.useMutation({
-    onSuccess: () => {
-      // router.reload();  // Note: 'reload' is used instead of 'refresh' in newer Next.js versions
+    onSuccess: async () => {
       setName("");
       setCostPerKg("");
+      toast.success("Ingrediente salvo com sucesso!");
+      await Promise.all([
+        utils.ingredient.getAllIngredients.invalidate(),
+        utils.product.getAllProducts.invalidate(),
+      ]);
+    },
+    onError: (error) => {
+      toast.error(error.message || "Não foi possível salvar o ingrediente.");
     },
   });
 
@@ -22,7 +32,16 @@ export function CreateIngredient() {
     <form
       onSubmit={(e) => {
         e.preventDefault();
-        createIngredient.mutate({ name, costPerKg: parseFloat(costPerKg) });
+        const parsedCost = parseFloat(costPerKg);
+        if (!name.trim()) {
+          toast.error("Informe o nome do ingrediente.");
+          return;
+        }
+        if (!Number.isFinite(parsedCost) || parsedCost < 0) {
+          toast.error("Informe um custo por Kg válido.");
+          return;
+        }
+        createIngredient.mutate({ name: name.trim(), costPerKg: parsedCost });
       }}
       className="flex flex-col gap-2"
     >

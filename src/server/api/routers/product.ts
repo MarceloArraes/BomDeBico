@@ -33,7 +33,7 @@ export const productRouter = createTRPCRouter({
   createProduct: protectedProcedure
   .input(z.object({ 
     name: z.string().min(1),
-    sellPricePerKg: z.number(),
+    sellPricePerKg: z.number().nonnegative(),
     isArchive: z.boolean().optional(),
     batchSize: z.number().optional(),
     costPerKg: z.number().optional(),
@@ -104,13 +104,13 @@ updateProduct: protectedProcedure
   .input(z.object({
     id: z.number(),
     name: z.string().min(1).optional(),
-    sellPricePerKg: z.number().optional(),
+    sellPricePerKg: z.number().nonnegative().optional(),
     isArchive: z.boolean().optional(),
-    batchSize: z.number().optional(),
-    costPerKg: z.number().optional(),
+    batchSize: z.number().nonnegative().optional(),
+    costPerKg: z.number().nonnegative().optional(),
     ingredients: z.array(z.object({
       ingredientId: z.number(),
-      quantity: z.number()
+      quantity: z.number().nonnegative()
     })).optional(),
   }))
   .mutation(async ({ ctx, input }) => {const { id, ingredients: newIngredientsInput, ...productData } = input;
